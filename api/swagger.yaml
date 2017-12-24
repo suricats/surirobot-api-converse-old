@@ -1,0 +1,72 @@
+---
+swagger: "2.0"
+info:
+  description: "Conversational Module for Surirobot"
+  version: "1.0.0"
+  title: "Conversational module"
+  termsOfService: ""
+  contact:
+    email: "nicolas.gorrity@gmail.com"
+  license:
+    name: "ISC"
+    url: "https://www.gnu.org/licenses/license-list.html#ISC"
+host: "address.server.fr"
+basePath: "/"
+tags:
+- name: "converse"
+  description: "get the bot speech answer for the user input speech"
+schemes:
+- "http"
+paths:
+  /converse:
+    post:
+      tags:
+      - "converse"
+      summary: "get the bot speech answer for the user input speech"
+      description: ""
+      operationId: "getbotspeaking"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "audio"
+        in: "formData"
+        description: "user audio"
+        required: true
+        type: "file"
+      - name: "language"
+        in: "query"
+        description: "Language of speech"
+        required: false
+        type: "string"
+        default: "fr"
+        enum:
+        - "fr"
+        - "en"
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            $ref: "#/definitions/OutputMessages"
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/OutputError"
+        503:
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/OutputError"
+      x-swagger-router-controller: "Converse"
+definitions:
+  OutputMessages:
+    type: "object"
+    properties:
+      answerAudioLink:
+        type: "string"
+      answerText:
+        type: "string"
+  OutputError:
+    properties:
+      answerText:
+        type: "string"
