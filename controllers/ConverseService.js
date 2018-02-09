@@ -1,6 +1,7 @@
 'use strict';
 
 const Requests = require('./Requests');
+var async = require('async');
 
 exports.getbotspeaking = function(args, res, next) {
   /**
@@ -64,23 +65,24 @@ exports.getbotspeaking = function(args, res, next) {
                             var dateSentence = "";
                             if (res_nlp.body.results.entities && res_nlp.body.results.entities.datetime) {
                                 startTime = res_nlp.body.results.entities.datetime[0].iso.split('+')[0] + 'Z';
-                                var separator = 'à';
-                                if (args.language.value !== 'fr') separator = 'at';
-                                dateSentence = res_nlp.body.results.entities.datetime[0].formatted.split(separator)[0];
+								var separator = 'à';
+		                        if (args.language.value !== 'fr') separator = 'at';
+		                        dateSentence = 'le ' + res_nlp.body.results.entities.datetime[0].formatted.split(separator)[0];
                             }
+							else startTime = Requests.getDateTime();
                             ///GET WHEATHER WITH WHEATHER API
                             Requests.getWeatherByCoords(forecastLatitude, forecastLongitude, startTime,
                                 (err_wh, res_wh) => {
                                 if (err_wh) {
                                     console.log('Error in WHEATHER API:'); 
-                                    console.log(err_wh.body);
+                                    console.log(err_wh);
                                     res.statusMessage = "Service unavailable";
                                     res.statusCode = 503;
                                     res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
                                 } else {
                                     //console.log(res_wh.body);
                                     toReturn[Object.keys(toReturn)[0]].answerText = res_wh.body.messages[0] + ' ';
-                                    toReturn[Object.keys(toReturn)[0]].answerText += 'le ' + dateSentence + '. ';
+                                    toReturn[Object.keys(toReturn)[0]].answerText += dateSentence.trim() + '. ';
                                     toReturn[Object.keys(toReturn)[0]].answerText += res_wh.body.messages[1] + ' ';
                                     console.log('Response: ' + toReturn[Object.keys(toReturn)[0]].answerText);
                                     ///Get the speech for this textual answer

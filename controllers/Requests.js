@@ -2,7 +2,7 @@
 
 const superagent = require('superagent');
 
-function getDateTime() {
+exports.getDateTime = function() {
     var date = new Date();
 
     var hour = date.getHours();
@@ -22,8 +22,8 @@ function getDateTime() {
     var day  = date.getDate();
     day = (day < 10 ? "0" : "") + day;
 
-    return year + "-" + month + "-" + day + "T" + hour + ":" + min + ":" + sec;
-}
+    return year + "-" + month + "-" + day + "T" + hour + ":" + min + ":" + sec + 'Z';
+};
 
 exports.speechToText = function(audioBuffer, language, callback) {
     if (language === 'en') language = 'en-EN';
@@ -56,6 +56,7 @@ exports.getWeatherByCoords = function(latitude, longitude, time, callback) {
     if (!time) {
         time = getDateTime();
     }
+	console.log(time);
     superagent.get('https://weather.api.surirobot.net/forecast/findByCoordinates')
     .query({latitude: latitude})
     .query({longitude: longitude})
