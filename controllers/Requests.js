@@ -35,6 +35,7 @@ exports.speechToText = function(audioBuffer, language, callback) {
 };
 
 exports.nlpGetIntent = function(text, lang, callback) {
+	if (lang !== 'en' && lang !== 'fr') lang='fr';
     superagent.post('https://nlp.api.surirobot.net/getintent')
     .set('Content-Type', 'application/json')
     .send({text: text,	language: lang})
@@ -65,7 +66,6 @@ exports.getWeatherByCoords = function(latitude, longitude, time, callback) {
 };
 
 exports.textToSpeech = function(text, lang, callback) {
-    console.log('Text to TTS: ' + text);
     superagent.post('https://text-to-speech.api.surirobot.net/speak')
     .send({text: '{"text": "' + text + '"}'})
     .end(callback);

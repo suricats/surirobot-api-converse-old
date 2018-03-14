@@ -1,6 +1,7 @@
 'use strict';
 
 const Requests = require('./Requests');
+const ErrorsCheck = require('./ErrorsCheck');
 var async = require('async');
 
 exports.getbotspeaking = function(args, res, next) {
@@ -17,14 +18,16 @@ exports.getbotspeaking = function(args, res, next) {
         "answerAudioLink" : ""
     };
     res.setHeader('Content-Type', 'application/json');
+
+	if (!ErrorsCheck.checkRequest(args, res, toReturn)) return;
   
     ///GET SPEECH TEXT WITH STT API
     Requests.speechToText(args.audio.value.buffer, args.language.value, 
         (r_err, r_res) => {
         if (r_err) {
-            console.log('Error in Speech To Text API:');
             console.log(r_err);
-            res.statusMessage = "Service unavailable";
+            res.statusMessage = 'Error in Speech To Text API: Received code ' + r_err.status;
+			console.log(res.statusMessage);
             res.statusCode = 503;
             res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
         }
@@ -34,13 +37,13 @@ exports.getbotspeaking = function(args, res, next) {
                 toReturn[Object.keys(toReturn)[0]].answerText += r_res.body.data.text[i] + '. ';
             }
             console.log('Input text: ' + toReturn[Object.keys(toReturn)[0]].answerText);
+			if (!ErrorsCheck.checkSTTresult(toReturn[Object.keys(toReturn)[0]].answerText, res, toReturn)) return;
             ///GET INTENT WITH NLP API
-            Requests.nlpGetIntent(toReturn[Object.keys(toReturn)[0]].answerText,	args.language.value, 
+            Requests.nlpGetIntent(toReturn[Object.keys(toReturn)[0]].answerText, args.language.value, 
                 (err_nlp, res_nlp) => {
 		if (err_nlp) {
-                    console.log('Error in NLP API:'); 
-                    console.log(err_nlp.body);
-                    res.statusMessage = "Service unavailable";
+                    res.statusMessage = 'Error in NLP API /getintent: Received code '+ err_nlp.response.res.statusCode + ' and status message: ' + err_nlp.response.res.statusMessage;
+					console.log(res.statusMessage); 
                     res.statusCode = 503;
                     res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
 		} else {
@@ -48,7 +51,7 @@ exports.getbotspeaking = function(args, res, next) {
                     var understood=false;
                     var preparingResponse = true;
                     ///Preparing textual response depending on NLP response
-                    if (res_nlp.body && res_nlp.body.results && res_nlp.body.results.intents.length>0) {
+                    if (res_nlp.body && res_nlp.body.results && res_nlp.body.results.intents && res_nlp.body.results.intents.length>0 && res_nlp.body.results.intents[0].slug) {
                         understood=true;
                         var intent = res_nlp.body.results.intents[0].slug;
                         console.log('Intent found: '+intent);
@@ -74,28 +77,28 @@ exports.getbotspeaking = function(args, res, next) {
                             Requests.getWeatherByCoords(forecastLatitude, forecastLongitude, startTime,
                                 (err_wh, res_wh) => {
                                 if (err_wh) {
-                                    console.log('Error in WHEATHER API:'); 
-                                    console.log(err_wh);
-                                    res.statusMessage = "Service unavailable";
+                                    res.statusMessage = "Error in Wheather API /getWeatherByCoords: Received code " + err_wh.response.res.statusCode + ' and status message: ' + err_wh.response.res.statusMessage;
+                                    console.log(res.statusMessage);
                                     res.statusCode = 503;
                                     res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
                                 } else {
-                                    //console.log(res_wh.body);
+									if (!ErrorsCheck.checkWeatherResult(res_wh, res, toReturn)) return;
                                     toReturn[Object.keys(toReturn)[0]].answerText = res_wh.body.messages[0] + ' ';
                                     toReturn[Object.keys(toReturn)[0]].answerText += dateSentence.trim() + '. ';
                                     toReturn[Object.keys(toReturn)[0]].answerText += res_wh.body.messages[1] + ' ';
                                     console.log('Response: ' + toReturn[Object.keys(toReturn)[0]].answerText);
+									if (!ErrorsCheck.checkTTSinput(toReturn[Object.keys(toReturn)[0]].answerText, res, toReturn)) return;
                                     ///Get the speech for this textual answer
                                     Requests.textToSpeech(toReturn[Object.keys(toReturn)[0]].answerText, args.language.value,
                                         (s_err, s_res) => {
                                         if (s_err) {
-                                            console.log('Error in TTS API:');
-                                            console.log(s_err);
-                                            res.statusMessage = "Service unavailable";
+                                            res.statusMessage = 'Error in Text To Speech API: Received code ' + s_err.response.res.statusCode + ' and status message: ' + s_err.response.res.statusMessage;
+											console.log(res.statusMessage);
                                             res.statusCode = 503;
                                             res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
                                         }
                                         else {
+											if (!ErrorsCheck.checkTTSresult(s_res, res, toReturn)) return;
                                             toReturn[Object.keys(toReturn)[0]].answerAudioLink = Requests.ttsGetFullDownloadLink(s_res.body.downloadLink);
                                             res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
                                         }
@@ -108,28 +111,29 @@ exports.getbotspeaking = function(args, res, next) {
                             Requests.nlpGetAnswer(toReturn[Object.keys(toReturn)[0]].answerText,
                                 (err_nlp2, res_nlp2) => {
                                 if (err_nlp2) {
-                                    console.log('Error in NLP API to get answer:'); 
-                                    console.log(err_nlp2.body);
-                                    res.statusMessage = "Service unavailable";
-                                    res.statusCode = 503;
+                                    res.statusMessage = 'Error in NLP API /getanswer: Received code '+ err_nlp.response.res.statusCode + ' and status message: ' + err_nlp.response.res.statusMessage;
+									console.log(res.statusMessage); 
+									res.statusCode = 503;
                                     res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
                                 } else {
+									if (!ErrorsCheck.checkNLPGetAnswerresult(res_nlp2, res, toReturn)) return;
                                     toReturn[Object.keys(toReturn)[0]].answerText = "";
                                     for (var i=0; i<res_nlp2.body.results.messages.length; i++) {
                                         toReturn[Object.keys(toReturn)[0]].answerText += res_nlp2.body.results.messages[i].content + ' ';
                                     }
                                     console.log('Response: ' + toReturn[Object.keys(toReturn)[0]].answerText);
+									if (!ErrorsCheck.checkTTSinput(toReturn[Object.keys(toReturn)[0]].answerText, res, toReturn)) return;
                                     ///Get the speech for this textual answer
                                     Requests.textToSpeech(toReturn[Object.keys(toReturn)[0]].answerText, args.language.value,
                                         (s_err, s_res) => {
                                         if (s_err) {
-                                            console.log('Error in TTS API:');
-                                            console.log(s_err);
-                                            res.statusMessage = "Service unavailable";
+                                            res.statusMessage = 'Error in Text To Speech API: Received code ' + s_err.response.res.statusCode + ' and status message: ' + s_err.response.res.statusMessage;
+											console.log(res.statusMessage);
                                             res.statusCode = 503;
                                             res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
                                         }
                                         else {
+											if (!ErrorsCheck.checkTTSresult(s_res, res, toReturn)) return;
                                             toReturn[Object.keys(toReturn)[0]].answerAudioLink = Requests.ttsGetFullDownloadLink(s_res.body.downloadLink);
                                             console.log('Speech download link: ' + toReturn[Object.keys(toReturn)[0]].answerAudioLink);
                                             res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
@@ -149,13 +153,13 @@ exports.getbotspeaking = function(args, res, next) {
                         Requests.textToSpeech(toReturn[Object.keys(toReturn)[0]].answerText, args.language.value,
                             (s_err, s_res) => {
                             if (s_err) {
-                                console.log('Error in TTS API:');
-                                console.log(s_err);
-                                res.statusMessage = "Service unavailable";
+                                res.statusMessage = 'Error in Text To Speech API: Received code ' + s_err.response.res.statusCode + ' and status message: ' + s_err.response.res.statusMessage;
+								console.log(res.statusMessage);
                                 res.statusCode = 503;
                                 res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
                             }
                             else {
+								if (!ErrorsCheck.checkTTSresult(s_res, res, toReturn)) return;
                                 toReturn[Object.keys(toReturn)[0]].answerAudioLink = Requests.ttsGetFullDownloadLink(s_res.body.downloadLink);
                                 res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
                             }
