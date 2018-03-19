@@ -30,6 +30,19 @@ exports.checkSTTresult = function(text, res, toReturn) {
 	return true;
 };
 
+exports.checkSTTanswer = function(stt_res, res, toReturn) {
+	if (!stt_res || !stt_res.body || !stt_res.body.data || !stt_res.body.data.text) {
+		res.statusCode = 503;
+        res.statusMessage = "Converse API: Input text extracted with STT cannot be found in STT response";
+		if (stt_res.res.req.res.body) res.statusMessage += ": STT returned code " + stt_res.res.req.res.body.code + " and status message: " + stt_res.res.req.res.body.msg;
+        console.log(res.statusMessage);
+		console.log(stt_res);
+        res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
+		return false;
+	}
+	return true;
+};
+
 exports.checkTTSresult = function(ttsRes, res, toReturn) {
 	if (!ttsRes || !ttsRes.body || !ttsRes.body.downloadLink || ttsRes.body.downloadLink.trim().length == 0) {
 		res.statusCode = 503;

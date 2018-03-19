@@ -28,6 +28,7 @@ exports.getDateTime = function() {
 exports.speechToText = function(audioBuffer, language, callback) {
     if (language === 'en') language = 'en-EN';
     else language = 'fr-FR';
+	console.log(language);
     superagent.post('https://speech-to-text.api.surirobot.net/recognize')
     .attach('audio', audioBuffer, 'audio.wav')
     .field('language', language)
