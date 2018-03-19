@@ -33,9 +33,7 @@ exports.getbotspeaking = function(args, res, next) {
         }
         else {
             toReturn[Object.keys(toReturn)[0]].answerText = "";
-				console.log("coucou");
 			if (!ErrorsCheck.checkSTTanswer(r_res, res, toReturn)) return;
-				console.log("cc");
             for (var i=0; i<r_res.body.data.text.length; i++) {
                 toReturn[Object.keys(toReturn)[0]].answerText += r_res.body.data.text[i] + '. ';
             }
