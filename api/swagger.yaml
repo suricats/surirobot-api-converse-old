@@ -16,7 +16,7 @@ tags:
 - name: "converse"
   description: "get the bot speech answer for the user input speech"
 schemes:
-- "http"
+- "https"
 paths:
   /converse:
     post:
@@ -36,7 +36,7 @@ paths:
         required: true
         type: "file"
       - name: "language"
-        in: "query"
+        in: "formData"
         description: "Language of speech"
         required: false
         type: "string"
@@ -44,6 +44,11 @@ paths:
         enum:
         - "fr"
         - "en"
+      - name: "userId"
+        in: "formData"
+        description: "ID of the user"
+        required: true
+        type: "string"
       responses:
         200:
           description: "Ok"

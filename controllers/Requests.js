@@ -28,7 +28,6 @@ exports.getDateTime = function() {
 exports.speechToText = function(audioBuffer, language, callback) {
     if (language === 'en') language = 'en-EN';
     else language = 'fr-FR';
-	console.log(language);
     superagent.post('https://speech-to-text.api.surirobot.net/recognize')
     .attach('audio', audioBuffer, 'audio.wav')
     .field('language', language)
@@ -43,10 +42,10 @@ exports.nlpGetIntent = function(text, lang, callback) {
     .end(callback);
 };
 
-exports.nlpGetAnswer = function(text, callback) {
+exports.nlpGetAnswer = function(text, conversation_id, callback) {
     superagent.post('https://nlp.api.surirobot.net/getanswer')
     .set('Content-Type', 'application/json')
-    .send({text: text,	conversation_id: '02345678'})
+    .send({text: text,	conversation_id: conversation_id})
     .end(callback);
 };
 
