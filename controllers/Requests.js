@@ -25,6 +25,13 @@ exports.getDateTime = function() {
     return year + "-" + month + "-" + day + "T" + hour + ":" + min + ":" + sec + 'Z';
 };
 
+exports.returnInternalError = function(res, jsonToReturn, statusMessage) {
+	res.statusMessage = statusMessage;
+	console.log(res.statusMessage);
+    res.statusCode = 503;
+    res.end(JSON.stringify(jsonToReturn[Object.keys(jsonToReturn)[0]] || {}, null, 2));
+}
+
 exports.speechToText = function(audioBuffer, language, callback) {
     if (language === 'en') language = 'en-EN';
     else language = 'fr-FR';
@@ -46,6 +53,14 @@ exports.nlpGetAnswer = function(text, conversation_id, callback) {
     superagent.post('https://nlp.api.surirobot.net/getanswer')
     .set('Content-Type', 'application/json')
     .send({text: text,	conversation_id: conversation_id})
+    .end(callback);
+};
+
+exports.nlpUpdateMemory = function(field, value, userId, callback) {
+	if (!value) value="";
+    superagent.post('https://nlp.api.surirobot.net/updateMemory')
+    .set('Content-Type', 'application/json')
+    .send({field: field, value: value, userId: userId})
     .end(callback);
 };
 

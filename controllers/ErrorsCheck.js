@@ -1,6 +1,6 @@
 'use strict';
 
-exports.checkRequest = function(args, res, toReturn) {
+exports.checkSTTRequest = function(args, res, toReturn) {
 	if (!args.audio || !args.audio || !args.audio.value || !args.audio.value.buffer) {
 		res.statusCode = 400;
         res.statusMessage = "Converse API: Bad request: missing audio field";
@@ -18,6 +18,55 @@ exports.checkRequest = function(args, res, toReturn) {
 
 	return true;
 };
+
+exports.checkConverseRequest = function(args, res, toReturn) {
+	if (!args.audio || !args.audio.value || !args.audio.value.buffer) {
+		res.statusCode = 400;
+        res.statusMessage = "Converse API: Bad request: missing audio field";
+        console.log(res.statusMessage);
+        res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
+		return false;
+	}
+	if (!args.language || !args.language.value) {
+		res.statusCode = 400;
+        res.statusMessage = "Converse API: Bad request: missing language field";
+        console.log(res.statusMessage);
+        res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
+		return false;
+	}
+	if (!args.userId || !args.userId.value) {
+		res.statusCode = 400;
+        res.statusMessage = "Converse API: Bad request: missing userId field";
+        console.log(res.statusMessage);
+        res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
+		return false;
+	}
+
+	return true;
+};
+
+exports.checkUpdateMemoryRequest = function(args, res, toReturn) {
+	if (!args.field) {
+		res.statusCode = 400;
+        res.statusMessage = "Converse API: Bad request: missing 'field' field";
+        console.log(res.statusMessage);
+        res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
+		return false;
+	}
+	if (!args.userId) {
+		res.statusCode = 400;
+        res.statusMessage = "Converse API: Bad request: missing 'userId' field";
+        console.log(res.statusMessage);
+        res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
+		return false;
+	}
+
+	return true;
+};
+
+exports.checkSTTresponse = function(res_stt, res, toReturn) {
+	return !(!res_stt || !res_stt.body || !res_stt.body.data || !res_stt.body.data.text);
+}
 
 exports.checkSTTresult = function(text, res, toReturn) {
 	if (!text || !text.match(/[a-z0-9]/i)) {

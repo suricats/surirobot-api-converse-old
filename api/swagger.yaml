@@ -15,6 +15,10 @@ basePath: "/"
 tags:
 - name: "converse"
   description: "get the bot speech answer for the user input speech"
+- name: "speechToText"
+  description: "get the textual transcription of the input audio file"
+- name: "updateMemory"
+  description: "writes a field in the bot memory for the specified conversation"
 schemes:
 - "https"
 paths:
@@ -53,7 +57,7 @@ paths:
         200:
           description: "Ok"
           schema:
-            $ref: "#/definitions/OutputMessages"
+            $ref: "#/definitions/OutputConverse"
         400:
           description: "Bad request"
           schema:
@@ -63,15 +67,115 @@ paths:
           schema:
             $ref: "#/definitions/OutputError"
       x-swagger-router-controller: "Converse"
+  /speechToText:
+    post:
+      tags:
+      - "speechToText"
+      summary: "get the textual transcription of the input audio file"
+      description: ""
+      operationId: "getsttresult"
+      consumes: 
+      - "multipart/form-data"
+      produces: 
+      - "application/json"
+      parameters:
+      - name: "audio"
+        in: "formData"
+        description: "user audio"
+        required: true
+        type: "file"
+      - name: "language"
+        in: "formData"
+        description: "Language of speech"
+        required: false
+        type: "string"
+        default: "fr"
+        enum:
+        - "fr"
+        - "en"
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            $ref: "#/definitions/OutputSTT"
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/OutputError"
+        503:
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/OutputError"
+      x-swagger-router-controller: "SpeechToText"
+  /updateMemory:
+    post:
+      tags:
+      - "updateMemory"
+      summary: "writes a field in the bot memory for the specified conversation"
+      description: ""
+      operationId: "updatememory"
+      consumes:
+      - "application/json"
+      produces: 
+      - "application/json"
+      parameters:
+      - name: "body"
+        in: "body"
+        description: "See definition of InputUpdateMemory object"
+        required: true
+        schema:
+          $ref: '#/definitions/InputUpdateMemory'
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            $ref: "#/definitions/OutputUpdateMemory"
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/OutputError"
+        503:
+          description: "Service unavailable"
+          schema:
+            $ref: "#/definitions/OutputError"
+      x-swagger-router-controller: "UpdateMemory"
 definitions:
-  OutputMessages:
+  OutputConverse:
     type: "object"
     properties:
+      intent:
+        type: "string"
       answerAudioLink:
         type: "string"
       answerText:
+        type: "string"
+  OutputSTT:
+    type: "object"
+    properties:
+      text:
         type: "string"
   OutputError:
     properties:
       answerText:
         type: "string"
+  OutputUpdateMemory:
+    type: "object"
+  InputUpdateMemory:
+    type: "object"
+    properties:
+      field:
+        type: "string"
+        description: "Name of the field to update - REQUIRED"
+        example: "username"
+        enum: 
+        - "username"
+        - "location"
+      value:
+        type: "string"
+        description: "Value to write in the specified field - make it empty to erase the specified field"
+        example: "Jean Dupont"
+      userId:
+        type: "string"
+        description: "ID of the user for which the field needs to be updated - REQUIRED"
+        example: "jean-dupont-10"
+        
