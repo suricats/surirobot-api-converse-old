@@ -81,11 +81,10 @@ exports.getWeatherByCoords = function(latitude, longitude, time, callback) {
 };
 
 exports.textToSpeech = function(text, lang, callback) {
+	if (lang === 'en') lang = 'en-EN';
+    else lang = 'fr-FR';
     superagent.post('https://text-to-speech.api.surirobot.net/speak')
-    .send({text: '{"text": "' + text + '"}'})
+    .set('Content-Type', 'application/json')
+    .send({text: text, language: lang})
     .end(callback);
-};
-
-exports.ttsGetFullDownloadLink = function(localServerLink) {
-    return 'https://text-to-speech.api.surirobot.net' + localServerLink.substr(1); //remove 1st dot
 };
