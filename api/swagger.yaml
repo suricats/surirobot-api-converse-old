@@ -1,4 +1,3 @@
----
 swagger: "2.0"
 info:
   description: "Conversational Module for Surirobot"
@@ -129,15 +128,15 @@ paths:
         200:
           description: "Ok"
           schema:
-            $ref: "#/definitions/OutputUpdateMemory"
+            $ref: "#/definitions/InputUpdateMemory"
         400:
           description: "Bad request"
           schema:
-            $ref: "#/definitions/OutputError"
+            $ref: "#/definitions/OutputUpdateMemoryError"
         503:
           description: "Service unavailable"
           schema:
-            $ref: "#/definitions/OutputError"
+            $ref: "#/definitions/OutputUpdateMemoryError"
       x-swagger-router-controller: "UpdateMemory"
 definitions:
   OutputConverse:
@@ -145,21 +144,39 @@ definitions:
     properties:
       intent:
         type: "string"
+        description: "Intent found by NLP API - will be not-understood if no intent has been detected"
+        example: "ask-feeling"
       answerAudioLink:
         type: "string"
+        description: "URL to download the output speech wav file"
+        example: "http://url.api.server.net/file.wav"
       answerText:
         type: "string"
+        description: "Textual transcript of the output speech"
+        example: "Je vais bien, merci !"
   OutputSTT:
     type: "object"
     properties:
       text:
         type: "string"
+        example: "Bonjour, comment vas-tu ?"
   OutputError:
     properties:
       answerText:
         type: "string"
-  OutputUpdateMemory:
+        example: ""
+  OutputUpdateMemoryError:
     type: "object"
+    properties:
+      field:
+        type: "string"
+        example: ""
+      value:
+        type: "string"
+        example: ""
+      userId:
+        type: "string"
+        example: ""
   InputUpdateMemory:
     type: "object"
     properties:
@@ -178,4 +195,3 @@ definitions:
         type: "string"
         description: "ID of the user for which the field needs to be updated - REQUIRED"
         example: "jean-dupont-10"
-        
