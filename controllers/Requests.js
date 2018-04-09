@@ -85,6 +85,16 @@ exports.getnews = function(callback) {
     .end(callback);
 };
 
+exports.cryptonews = function(currency, callback) {
+	if (!currency) currency="bitcoin";
+	currency = currency.toLowerCase();
+	console.log(currency);
+    superagent.post('https://crypto-news.api.surirobot.net/getcrypto')
+    .set('Content-Type', 'application/json')
+    .send({currency: currency})
+    .end(callback);
+};
+
 exports.textToSpeech = function(text, lang, callback) {
 	if (lang === 'en') lang = 'en-EN';
     else lang = 'fr-FR';
