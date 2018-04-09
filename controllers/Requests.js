@@ -80,6 +80,11 @@ exports.getWeatherByCoords = function(latitude, longitude, time, callback) {
     .end(callback);
 };
 
+exports.getnews = function(callback) {
+    superagent.get('https://news.api.surirobot.net/getnews')
+    .end(callback);
+};
+
 exports.textToSpeech = function(text, lang, callback) {
 	if (lang === 'en') lang = 'en-EN';
     else lang = 'fr-FR';

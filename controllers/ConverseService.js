@@ -109,6 +109,29 @@ exports.getbotspeaking = function(args, res, next) {
 		                    });
 						}
 
+						///NEWS INTENT
+						else if (intent === "news") {
+							Requests.getnews(
+		                        (err_n, res_n) => {
+		                        if (err_n) Requests.returnInternalError(res, toReturn, "/converse => Error in News API /getnews: Received code " + err_n.response.res.statusCode + ' and status message: ' + err_n.response.res.statusMessage);
+		                        else {
+									toReturn[Object.keys(toReturn)[0]].answerText = res_n.body.messages;
+		                            console.log('Response: ' + toReturn[Object.keys(toReturn)[0]].answerText);
+									if (!ErrorsCheck.checkTTSinput(toReturn[Object.keys(toReturn)[0]].answerText, res, toReturn)) return;
+		                            ///Get the speech for this textual answer
+		                            Requests.textToSpeech(toReturn[Object.keys(toReturn)[0]].answerText, args.language.value,
+		                                (s_err, s_res) => {
+		                                if (s_err) Requests.returnInternalError(res, toReturn, '/converse => Error in Text To Speech API: Received code ' + s_err.response.res.statusCode + ' and status message: ' + s_err.response.res.statusMessage);
+		                                else {
+											if (!ErrorsCheck.checkTTSresult(s_res, res, toReturn)) return;
+		                                    toReturn[Object.keys(toReturn)[0]].answerAudioLink = s_res.body.downloadLink;
+		                                    res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
+		                                }
+		                            });    
+		                        }
+		                    });
+						}
+
 						///BLABLA INTENT: return answer from NLP
 						else {
 						    for (var i=0; i<res_nlp.body.results.messages.length; i++) {
