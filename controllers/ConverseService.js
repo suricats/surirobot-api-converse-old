@@ -40,7 +40,7 @@ exports.getbotspeaking = function(args, res, next) {
 		            if (s_err) Requests.returnInternalError(res, toReturn, '/converse => Error in Text To Speech API: Received code ' + s_err.response.res.statusCode + ' and status message: ' + s_err.response.res.statusMessage);
 		            else {
 						if (!ErrorsCheck.checkTTSresult(s_res, res, toReturn)) return;
-		                toReturn[Object.keys(toReturn)[0]].answerAudioLink = Requests.ttsGetFullDownloadLink(s_res.body.downloadLink);
+		                toReturn[Object.keys(toReturn)[0]].answerAudioLink = s_res.body.downloadLink;
 		                console.log('Speech download link: ' + toReturn[Object.keys(toReturn)[0]].answerAudioLink);
 		                res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
 		            }
