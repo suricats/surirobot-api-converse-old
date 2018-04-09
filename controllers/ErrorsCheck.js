@@ -112,6 +112,17 @@ exports.checkTTSinput = function(text, res, toReturn) {
 	return true;
 }
 
+exports.checkCryptonewsOutput = function(text, res, toReturn) {
+	if (!text) {
+		res.statusCode = 503;
+        res.statusMessage = "Converse API: Text in output of crypto-news API was empty.";
+        console.log(res.statusMessage);
+        res.end(JSON.stringify(toReturn[Object.keys(toReturn)[0]] || {}, null, 2));
+		return false;
+	}
+	return true;
+}
+
 exports.checkWeatherResult = function(w_res, res, toReturn) {
 	if (!w_res || !w_res.body || !w_res.body.messages || w_res.body.messages.length < 2) {
 		res.statusCode = 503;

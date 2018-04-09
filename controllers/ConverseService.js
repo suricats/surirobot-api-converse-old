@@ -61,9 +61,9 @@ exports.getbotspeaking = function(args, res, next) {
 				    else {
 						if (!ErrorsCheck.checkNLPGetAnswerresult(res_nlp, res, toReturn)) return;
 				        toReturn[Object.keys(toReturn)[0]].answerText = "";
-
+						console.log(res_nlp.body);
 						var intent = "";
-						if (res_nlp.body.results.nlp && res_nlp.body.results.nlp.intents && res_nlp.body.results.nlp.intents.length > 0) intent = res_nlp.body.results.nlp.intents[0].slug;
+						if (res_nlp.body.results && res_nlp.body.results.nlp && res_nlp.body.results.nlp.intents && res_nlp.body.results.nlp.intents.length > 0) intent = res_nlp.body.results.nlp.intents[0].slug;
 						console.log('Intent = ' + intent);
 						toReturn[Object.keys(toReturn)[0]].intent = intent;
 
@@ -71,17 +71,17 @@ exports.getbotspeaking = function(args, res, next) {
 							var forecastLatitude = null;
 		                    var forecastLongitude = null;
 		                    var startTime = null;
-		                    if (res_nlp.body.results.entities && res_nlp.body.results.entities.location) {
-		                        forecastLongitude = res_nlp.body.results.entities.location[0].lng;
-		                        forecastLatitude = res_nlp.body.results.entities.location[0].lat;
+		                    if (res_nlp.body.results.nlp.entities && res_nlp.body.results.nlp.entities.location) {
+		                        forecastLongitude = res_nlp.body.results.nlp.entities.location[0].lng;
+		                        forecastLatitude = res_nlp.body.results.nlp.entities.location[0].lat;
 		                    }
 		                    ///Add sentence to the message, to express the date of the forecast
 		                    var dateSentence = "";
-		                    if (res_nlp.body.results.entities && res_nlp.body.results.entities.datetime) {
-		                        startTime = res_nlp.body.results.entities.datetime[0].iso.split('+')[0] + 'Z';
+		                    if (res_nlp.body.results.nlp.entities && res_nlp.body.results.nlp.entities.datetime) {
+		                        startTime = res_nlp.body.results.nlp.entities.datetime[0].iso.split('+')[0] + 'Z';
 								var separator = 'à';
 			                    if (args.language.value !== 'fr') separator = 'at';
-			                    dateSentence = 'le ' + res_nlp.body.results.entities.datetime[0].formatted.split(separator)[0];
+			                    dateSentence = 'le ' + res_nlp.body.results.nlp.entities.datetime[0].formatted.split(separator)[0];
 		                    }
 							else startTime = Requests.getDateTime();
 		                    ///GET WHEATHER WITH WHEATHER API
@@ -139,6 +139,7 @@ exports.getbotspeaking = function(args, res, next) {
 		                        (err_c, res_c) => {
 		                        if (err_c) Requests.returnInternalError(res, toReturn, "/converse => Error in CryptoNews API /cryptonews: Received code " + err_c.response.res.statusCode + ' and status message: ' + err_c.response.res.statusMessage);
 		                        else {
+									if (!ErrorsCheck.checkCryptonewsOutput(res_c.body.messages, res, toReturn)) return;
 									toReturn[Object.keys(toReturn)[0]].answerText = res_c.body.messages;
 		                            console.log('Response= ' + toReturn[Object.keys(toReturn)[0]].answerText);
 									if (!ErrorsCheck.checkTTSinput(toReturn[Object.keys(toReturn)[0]].answerText, res, toReturn)) return;
